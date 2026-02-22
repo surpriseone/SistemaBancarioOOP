@@ -5,31 +5,32 @@ package br.com.sistemabancario.application;
 
 import br.com.sistemabancario.entities.Banco;
 import br.com.sistemabancario.entities.SistemaBancario;
-import br.com.sistemabancario.exceptions.contaNaoEncontradaException;
-import br.com.sistemabancario.exceptions.saldoInsuficienteException;
-import br.com.sistemabancario.exceptions.tranferirParaMesmaContaException;
-import br.com.sistemabancario.exceptions.valorInvalidoException;
-import java.util.Scanner;
+import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
+import br.com.sistemabancario.exceptions.SaldoInsuficienteException;
+import br.com.sistemabancario.exceptions.TranferirParaMesmaContaException;
+import br.com.sistemabancario.exceptions.ValorInvalidoException;
 
+import java.math.BigDecimal;
+import java.util.Scanner;
+import java.util.Locale;
 
 
 public class Main {
     public static void main(String[] args){
-
+        Locale.setDefault(Locale.US);
         Banco NewBank = new Banco("New Bank");
         SistemaBancario sistemaNewBank = new SistemaBancario(NewBank);
-
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Jose", 600);
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Felype", 200);
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Maycon", 1000);
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Luis", 2000);
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Marta", 60000);
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Neymar", 20000);
+        sistemaNewBank.sistemaCriarContaComDepositoInicial("Jose", new BigDecimal(600));
+        sistemaNewBank.sistemaCriarContaComDepositoInicial("Felype", new BigDecimal(200));
+        sistemaNewBank.sistemaCriarContaComDepositoInicial("Maycon", new BigDecimal(1000));
+        sistemaNewBank.sistemaCriarContaComDepositoInicial("Luis", new BigDecimal(2000));
+        sistemaNewBank.sistemaCriarContaComDepositoInicial("Marta", new BigDecimal(3000));
+        sistemaNewBank.sistemaCriarContaComDepositoInicial("Neymar", new BigDecimal(20000));
 
 
         Scanner sc = new Scanner(System.in);
         String nome;
-        double valorDeposito;
+        BigDecimal valorDeposito;
         char option;
 
         int contaUsuario;
@@ -40,7 +41,7 @@ public class Main {
         option = sc.next().charAt(0);
         if (Character.toUpperCase(option) == 'S'){
             System.out.println("Digite o valor do deposito: ");
-            valorDeposito = sc.nextDouble();
+            valorDeposito = sc.nextBigDecimal();
             contaUsuario = sistemaNewBank.sistemaCriarContaComDepositoInicial(nome, valorDeposito);
         }
         else{
@@ -48,8 +49,8 @@ public class Main {
         }
 
         int execucao;
-        double valorSaque;
-        double valorTranferencia;
+        BigDecimal valorSaque;
+        BigDecimal valorTranferencia;
         int numeroContaDestino;
 
 
@@ -69,20 +70,20 @@ public class Main {
                 case 1:
                     System.out.println("Valor do deposito: ");
                     try {
-                        valorDeposito = sc.nextDouble();
+                        valorDeposito = sc.nextBigDecimal();
                         sistemaNewBank.depositar(contaUsuario, valorDeposito);
-                    } catch (valorInvalidoException e) {
+                    } catch (ValorInvalidoException e) {
                         System.out.println("Error 400: " + e.getMessage());
                     }
                     break;
                 case 2:
                     System.out.println("Valor do saque: ");
                     try {
-                        valorSaque = sc.nextDouble();
+                        valorSaque = sc.nextBigDecimal();
                         sistemaNewBank.sacar(contaUsuario, valorSaque);
-                    } catch (valorInvalidoException e) {
+                    } catch (ValorInvalidoException e) {
                         System.out.println("Error 400: " + e.getMessage());
-                    } catch (saldoInsuficienteException e) {
+                    } catch (SaldoInsuficienteException e) {
                         System.out.println("Error 422: " + e.getMessage());
                     }
                     break;
@@ -91,13 +92,13 @@ public class Main {
                         System.out.println("Digite o numero da conta que você vai realizar a tranferencia");
                         numeroContaDestino = sc.nextInt();
                         System.out.println("Digite o valor da tranferencia: ");
-                        valorTranferencia = sc.nextDouble();
+                        valorTranferencia = sc.nextBigDecimal();
                         sistemaNewBank.tranferencia(contaUsuario, numeroContaDestino, valorTranferencia);
-                    } catch (valorInvalidoException e) {
+                    } catch (ValorInvalidoException e) {
                         System.out.println("Error 400: " + e.getMessage());
-                    } catch (saldoInsuficienteException | tranferirParaMesmaContaException e) {
+                    } catch (SaldoInsuficienteException | TranferirParaMesmaContaException e) {
                         System.out.println("Error 422: " + e.getMessage());
-                    } catch (contaNaoEncontradaException e) {
+                    } catch (ContaNaoEncontradaException e) {
                         System.out.println("Error 404: " + e.getMessage());
                     }
 

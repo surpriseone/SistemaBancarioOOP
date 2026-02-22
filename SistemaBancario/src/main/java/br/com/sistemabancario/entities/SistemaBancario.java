@@ -1,7 +1,9 @@
 package br.com.sistemabancario.entities;
 
 
-import br.com.sistemabancario.exceptions.valorInvalidoException;
+import br.com.sistemabancario.exceptions.ValorInvalidoException;
+
+import java.math.BigDecimal;
 
 public class SistemaBancario {
 
@@ -15,22 +17,22 @@ public class SistemaBancario {
         return this.banco;
     }
 
-    public void tranferencia(int numeroContaOrigem, int numeroContaDestino, double valorTranferencia){
+    public void tranferencia(int numeroContaOrigem, int numeroContaDestino, BigDecimal valorTranferencia){
         //validação para evitar chamar metodos, em um cenario onde a tranferencia ja nasceu invalida.
-        if (valorTranferencia <= 0){
-            throw new valorInvalidoException("Valor de transferencia invalido");
+        if (valorTranferencia.compareTo(BigDecimal.ZERO) <= 0){
+            throw new ValorInvalidoException("Valor de transferencia invalido");
         }
 
         ContaBancaria contaOrigem = banco.buscarContaBancariaPorNumero(numeroContaOrigem);
         ContaBancaria contaDestino = banco.buscarContaBancariaPorNumero(numeroContaDestino);
 
-        contaOrigem.tranferir(contaDestino, valorTranferencia);
+        contaOrigem.transferir(contaDestino, valorTranferencia);
     }
 
-    public void sacar(int numeroDaConta, double valorSaque){
+    public void sacar(int numeroDaConta, BigDecimal valorSaque){
 
-        if (valorSaque <= 0){
-            throw new valorInvalidoException("Valor de saque invalido");
+        if (valorSaque.compareTo(BigDecimal.ZERO) <= 0){
+            throw new ValorInvalidoException("Valor de saque invalido");
         }
 
         ContaBancaria contaRequestSaque = banco.buscarContaBancariaPorNumero(numeroDaConta);
@@ -38,10 +40,10 @@ public class SistemaBancario {
     }
 
 
-    public void depositar(int numeroDaConta, double valorDeposito){
+    public void depositar(int numeroDaConta, BigDecimal valorDeposito){
 
-        if (valorDeposito <= 0){
-            throw new valorInvalidoException("Valor de deposito invalido");
+        if (valorDeposito.compareTo(BigDecimal.ZERO) <= 0){
+            throw new ValorInvalidoException("Valor de deposito invalido");
         }
 
         ContaBancaria contaRequestDeposito = banco.buscarContaBancariaPorNumero(numeroDaConta);
@@ -52,7 +54,7 @@ public class SistemaBancario {
         return banco.criarConta(nomeTitular);
     }
 
-    public int sistemaCriarContaComDepositoInicial(String nomeTitular, double depositoInicial){
+    public int sistemaCriarContaComDepositoInicial(String nomeTitular, BigDecimal depositoInicial) {
         return banco.criarConta(nomeTitular, depositoInicial);
     }
 }

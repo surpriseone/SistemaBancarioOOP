@@ -1,6 +1,8 @@
 package br.com.sistemabancario.entities;
 
-import br.com.sistemabancario.exceptions.contaNaoEncontradaException;
+import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
+
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -30,7 +32,7 @@ public class Banco {
 
 
     //conta com deposito inicial
-    public int criarConta(String nomeTitular, double valorDeposito) {
+    public int criarConta(String nomeTitular, BigDecimal valorDeposito) {
         ContaBancaria conta = new ContaBancaria(nomeTitular, gerarNumero(), valorDeposito);
         this.adiocionarConta(conta);
         return conta.getNumeroDaConta();
@@ -42,7 +44,7 @@ public class Banco {
         ContaBancaria contaBuscada = contas.get(numeroConta);
 
         if (contaBuscada == null) {
-            throw new contaNaoEncontradaException("Conta não encontrada");
+            throw new ContaNaoEncontradaException("Conta não encontrada");
         }
 
         return contaBuscada;

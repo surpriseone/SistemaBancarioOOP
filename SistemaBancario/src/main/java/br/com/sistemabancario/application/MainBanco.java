@@ -2,7 +2,9 @@ package br.com.sistemabancario.application;
 
 import br.com.sistemabancario.entities.Banco;
 import br.com.sistemabancario.entities.SistemaBancario;
-import br.com.sistemabancario.exceptions.contaNaoEncontradaException;
+import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
+
+import java.math.BigDecimal;
 import java.util.Scanner;
 
 
@@ -11,12 +13,12 @@ public class MainBanco {
 
         Banco bancoA = new Banco("application.Banco New");
         SistemaBancario sistemaBancoA = new SistemaBancario(bancoA);
-        sistemaBancoA.sistemaCriarContaComDepositoInicial("Jose", 600);
-        sistemaBancoA.sistemaCriarContaComDepositoInicial("Felype", 200);
-        sistemaBancoA.sistemaCriarContaComDepositoInicial("Maycon", 1000);
-        sistemaBancoA.sistemaCriarContaComDepositoInicial("Luis", 2000);
-        sistemaBancoA.sistemaCriarContaComDepositoInicial("Marta", 60000);
-        sistemaBancoA.sistemaCriarContaComDepositoInicial("Nicolas", 20000);
+        sistemaBancoA.sistemaCriarContaComDepositoInicial("Jose", new BigDecimal(600));
+        sistemaBancoA.sistemaCriarContaComDepositoInicial("Felype", new BigDecimal(200));
+        sistemaBancoA.sistemaCriarContaComDepositoInicial("Maycon", new BigDecimal(1000));
+        sistemaBancoA.sistemaCriarContaComDepositoInicial("Luis", new BigDecimal(2000));
+        sistemaBancoA.sistemaCriarContaComDepositoInicial("Marta", new BigDecimal(3000));
+        sistemaBancoA.sistemaCriarContaComDepositoInicial("Neymar", new BigDecimal(20000));
 
 
         Scanner sc = new Scanner(System.in);
@@ -37,7 +39,7 @@ public class MainBanco {
                     try {
                         int numeroContaProcurada = sc.nextInt();
                         System.out.println(bancoA.buscarContaBancariaPorNumero(numeroContaProcurada));
-                    } catch (contaNaoEncontradaException e) {
+                    } catch (ContaNaoEncontradaException e) {
                         System.out.println("Error 404: " + e.getMessage());
                     }
                     break;

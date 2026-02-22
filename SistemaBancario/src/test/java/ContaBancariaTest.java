@@ -1,11 +1,13 @@
 import br.com.sistemabancario.entities.ContaBancaria;
-import br.com.sistemabancario.exceptions.saldoInsuficienteException;
-import br.com.sistemabancario.exceptions.tranferirParaMesmaContaException;
-import br.com.sistemabancario.exceptions.valorInvalidoException;
+import br.com.sistemabancario.exceptions.SaldoInsuficienteException;
+import br.com.sistemabancario.exceptions.TranferirParaMesmaContaException;
+import br.com.sistemabancario.exceptions.ValorInvalidoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.math.BigDecimal;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ContaBancariaTest {
 
@@ -14,23 +16,24 @@ public class ContaBancariaTest {
 
     @BeforeEach
         public void criarConta() {
-            contaUsuario1 = new ContaBancaria("Usuario1", 12, 600.0);
-            contaUsuario2 = new ContaBancaria("Usuario2", 22, 800.0);
+            contaUsuario1 = new ContaBancaria("Usuario1", 12, new BigDecimal("600.0"));
+            contaUsuario2 = new ContaBancaria("Usuario2", 22, new BigDecimal("800.0"));
     }
 
     @Test
     public void depositoValido(){
-        contaUsuario1.depositar(600);
-        assertEquals(
-                1200, contaUsuario1.getSaldo()
+        contaUsuario1.depositar(new BigDecimal(600));
+
+        assertTrue(
+                contaUsuario1.getSaldo().compareTo(new BigDecimal("1200")) == 0
         );
     }
 
     @Test
     public void depositoInvalido(){
         Exception validacao = assertThrows(
-                valorInvalidoException.class,
-                () -> contaUsuario1.depositar(-20)
+                ValorInvalidoException.class,
+                () -> contaUsuario1.depositar(new BigDecimal(-20))
         );
 
         assertEquals(
@@ -40,21 +43,21 @@ public class ContaBancariaTest {
 
     @Test
     public void saqueValido(){
-        double saldoCompleto = contaUsuario1.getSaldo();
+        BigDecimal saldoCompleto = contaUsuario1.getSaldo();
         contaUsuario1.sacar(saldoCompleto);
 
         assertEquals(
-                0, contaUsuario1.getSaldo()
+                0, contaUsuario1.getSaldo().compareTo(BigDecimal.ZERO)
         );
     }
 
     @Test
     public void saqueInvalido(){
 
-        double valorMaiorQueSaldo = contaUsuario1.getSaldo() + 1;
+        BigDecimal valorMaiorQueSaldo = contaUsuario1.getSaldo().add(BigDecimal.ONE);
 
         Exception validacao = assertThrows(
-                saldoInsuficienteException.class,
+                SaldoInsuficienteException.class,
                 () ->  contaUsuario1.sacar(valorMaiorQueSaldo)
         );
         assertEquals(
@@ -64,14 +67,14 @@ public class ContaBancariaTest {
 
     @Test
     public void tranferenciaValida(){
-        double saldoConta1 = contaUsuario1.getSaldo();
-        contaUsuario1.tranferir(contaUsuario2, saldoConta1);
+        BigDecimal saldoConta1 = contaUsuario1.getSaldo();
+        contaUsuario1.transferir(contaUsuario2, saldoConta1);
 
         assertEquals(
-                0.0, contaUsuario1.getSaldo()
+                0, contaUsuario1.getSaldo().compareTo(BigDecimal.ZERO)
         );
         assertEquals(
-                1400.0, contaUsuario2.getSaldo()
+                0, contaUsuario2.getSaldo().compareTo(new BigDecimal(1400))
         );
     }
 
@@ -79,11 +82,11 @@ public class ContaBancariaTest {
     public void tranferenciaInvalida(){
 
         Exception validacao = assertThrows(
-                tranferirParaMesmaContaException.class,
-                () -> contaUsuario1.tranferir(contaUsuario1, 500)
+                TranferirParaMesmaContaException.class,
+                () -> contaUsuario1.transferir(contaUsuario1, new BigDecimal(500))
         );
         assertEquals(
-                "Você não pode tranferir pra mesma conta", validacao.getMessage()
+                "Você não pode transferir pra mesma conta", validacao.getMessage()
         );
     }
 }

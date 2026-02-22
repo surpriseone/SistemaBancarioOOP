@@ -2,15 +2,20 @@
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.entities.SistemaBancario;
 import br.com.sistemabancario.entities.Banco;
-import br.com.sistemabancario.exceptions.contaNaoEncontradaException;
-import br.com.sistemabancario.exceptions.valorInvalidoException;
+import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
+import br.com.sistemabancario.exceptions.ValorInvalidoException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -39,6 +44,14 @@ public class SistemaBancarioTest {
     @InjectMocks
     private SistemaBancario sistemaBanco;
 
+    @Captor
+    ArgumentCaptor<ContaBancaria> contaCaptor;
+
+    @Captor
+    ArgumentCaptor<String> nomeCaptor;
+
+    @Captor
+    ArgumentCaptor<BigDecimal> valorParametroCaptor;
 
     //Testes do metodo de transferencia do sistema bancario
 
@@ -55,8 +68,14 @@ public class SistemaBancarioTest {
             when(bancoMock.buscarContaBancariaPorNumero(2))
                     .thenReturn(contaDestinoMock);
 
-            sistemaBanco.tranferencia(1, 2, 300);
-            verify(contaOrigemMock).tranferir(contaDestinoMock, 300);
+            sistemaBanco.tranferencia(1, 2, new BigDecimal("300.00"));
+
+            verify(contaOrigemMock, times(1)).transferir(eq(contaDestinoMock), valorParametroCaptor.capture());
+
+            BigDecimal valorTranferido = valorParametroCaptor.getValue();
+            assertEquals(
+                    new BigDecimal("300.00"), valorTranferido
+            );
         }
 
         @Test
@@ -64,11 +83,11 @@ public class SistemaBancarioTest {
         void testarTransferenciaContaOrigemInvalida() {
 
             when(bancoMock.buscarContaBancariaPorNumero(1))
-                    .thenThrow(new contaNaoEncontradaException("Conta nao encontrada"));
+                    .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
 
             Exception validacao = assertThrows(
-                    contaNaoEncontradaException.class,
-                    () -> sistemaBanco.tranferencia(1, 2, 200)
+                    ContaNaoEncontradaException.class,
+                    () -> sistemaBanco.tranferencia(1, 2, new BigDecimal(200))
             );
 
             assertEquals(
@@ -83,24 +102,24 @@ public class SistemaBancarioTest {
                     .thenReturn(contaOrigemMock);
 
             when(bancoMock.buscarContaBancariaPorNumero(2))
-                    .thenThrow(new contaNaoEncontradaException("Conta nao encontrada"));
+                    .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
 
             Exception validacao = assertThrows(
-                    contaNaoEncontradaException.class,
-                    () -> sistemaBanco.tranferencia(1, 2, 200)
+                    ContaNaoEncontradaException.class,
+                    () -> sistemaBanco.tranferencia(1, 2, new BigDecimal("200.00"))
             );
 
             assertEquals("Conta nao encontrada", validacao.getMessage());
 
-            verify(contaOrigemMock, never()).tranferir(any(ContaBancaria.class), eq(200));
+            verify(contaOrigemMock, never()).transferir(any(ContaBancaria.class), eq(new BigDecimal("200.00")));
         }
 
         @Test
         @DisplayName("Tetar tranferencia com valor de parametro invalido")
         void testarTransferenciaValorInvalido() {
             Exception validacao = assertThrows(
-                    valorInvalidoException.class,
-                    () -> sistemaBanco.tranferencia(1, 2, -1)
+                    ValorInvalidoException.class,
+                    () -> sistemaBanco.tranferencia(1, 2, new BigDecimal("-1"))
             );
 
             assertEquals(
@@ -120,22 +139,29 @@ public class SistemaBancarioTest {
         @Test
         void testarSaqueValido() {
 
+
             when(bancoMock.buscarContaBancariaPorNumero(1))
                     .thenReturn(contaSaqueMock);
 
-            sistemaBanco.sacar(1, 400);
+            sistemaBanco.sacar(1, new BigDecimal("400.00"));
 
-            verify(contaSaqueMock, times(1)).sacar(400);
+            verify(contaSaqueMock, times(1)).sacar(valorParametroCaptor.capture());
+
+            BigDecimal valorCapturado = valorParametroCaptor.getValue();
+
+            assertEquals(
+                    new BigDecimal("400.00"), valorCapturado
+            );
         }
 
         @Test
         void testarSaqueContaInvalida(){
             when(bancoMock.buscarContaBancariaPorNumero(1))
-                    .thenThrow(new contaNaoEncontradaException("Conta nao encontrada"));
+                    .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
 
             Exception validacao = assertThrows(
-                    contaNaoEncontradaException.class,
-                    ()-> sistemaBanco.depositar(1, 400)
+                    ContaNaoEncontradaException.class,
+                    ()-> sistemaBanco.depositar(1, new BigDecimal("400.00"))
             );
 
             assertEquals(
@@ -146,8 +172,8 @@ public class SistemaBancarioTest {
         @Test
         void testarSaqueValorInvalido(){
             Exception validacao = assertThrows(
-                    valorInvalidoException.class,
-                    ()-> sistemaBanco.sacar(1, -1)
+                    ValorInvalidoException.class,
+                    ()-> sistemaBanco.sacar(1, new BigDecimal("-1"))
             );
 
             assertEquals(
@@ -164,20 +190,26 @@ public class SistemaBancarioTest {
         when(bancoMock.buscarContaBancariaPorNumero(1))
                 .thenReturn(contaOrigemMock);
 
-        sistemaBanco.depositar(1, 200);
+        sistemaBanco.depositar(1, new BigDecimal("200.00"));
 
-        verify(contaOrigemMock, times(1)).depositar(200);
+        verify(contaOrigemMock, times(1)).depositar(valorParametroCaptor.capture());
+
+        BigDecimal valorCapturado = valorParametroCaptor.getValue();
+        assertEquals(
+                new BigDecimal("200.00"), valorCapturado
+        );
     }
 
     @Test
     @DisplayName("Testar deposito com conta não encontrada")
     void testarDepositoInvalido() {
         when(bancoMock.buscarContaBancariaPorNumero(20))
-                .thenThrow(new contaNaoEncontradaException("Conta nao encontrada"));
+                .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
+
 
         Exception validacao = assertThrows(
-                contaNaoEncontradaException.class,
-                () -> sistemaBanco.depositar(20, 200)
+                ContaNaoEncontradaException.class,
+                () -> sistemaBanco.depositar(20, new BigDecimal("200.00"))
         );
 
         assertEquals(
@@ -188,30 +220,19 @@ public class SistemaBancarioTest {
 
     @Test
     void testarSistemaCriarConta() {
-
         int numeroConta;
 
-        when(bancoMock.criarConta(anyString()))
+        when(bancoMock.criarConta("Jonas"))
                 .thenReturn(1);
 
         numeroConta = sistemaBanco.sistemaCriarConta("Jonas");
+        verify(bancoMock).criarConta(nomeCaptor.capture());
 
-        verify(bancoMock).criarConta("Jonas");
+        String nomeCapturado = nomeCaptor.getValue();
+        assertEquals(
+                "Jonas", nomeCapturado);
 
         assertEquals(
                 1, numeroConta);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

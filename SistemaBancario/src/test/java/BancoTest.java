@@ -1,6 +1,10 @@
-import br.com.sistemabancario.entities.Banco;
+
+
+import br.com.sistemabancario.entities.BancoMemoria;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
+import br.com.sistemabancario.objectvalues.Dinheiro;
+import br.com.sistemabancario.repositories.BancoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,18 +12,15 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class BancoTest {
 
 
 
-    private Banco banco;
+    private BancoRepository bancoMemoria;
 
     ContaBancaria contaTeste;
 
@@ -28,9 +29,9 @@ public class BancoTest {
 
     @BeforeEach
     public void setUp(){
-        banco = new Banco("Banco Teste");
+        bancoMemoria = new BancoMemoria("Banco Teste");
         contaTeste = new ContaBancaria("Jose", 10);
-        banco.adiocionarConta(contaTeste);
+        bancoMemoria.adicionarConta(contaTeste);
     }
 
 
@@ -38,7 +39,7 @@ public class BancoTest {
     void testarBuscarContaValida(){
 
         int numeroDaConta = contaTeste.getNumeroDaConta();
-        ContaBancaria contaRetornada = banco.buscarContaBancariaPorNumero(numeroDaConta);
+        ContaBancaria contaRetornada = bancoMemoria.buscarContaBancariaPorNumero(numeroDaConta);
         assertEquals(contaTeste, contaRetornada);
         assertEquals(contaTeste.getNumeroDaConta(), contaRetornada.getNumeroDaConta());
         assertEquals(contaTeste.getSaldo(), contaRetornada.getSaldo());
@@ -51,7 +52,7 @@ public class BancoTest {
         int numeroNuncaCadastrado = 100;
         Exception validacao = assertThrows(
                 ContaNaoEncontradaException.class,
-                () -> banco.buscarContaBancariaPorNumero(numeroNuncaCadastrado)
+                () -> bancoMemoria.buscarContaBancariaPorNumero(numeroNuncaCadastrado)
         );
 
         assertEquals(
@@ -61,15 +62,15 @@ public class BancoTest {
 
     @Test
     void testarCriacaoContaComDeposito(){
-        int numeroConta = banco.criarConta("João", new BigDecimal(600));
-        ContaBancaria conta = banco.buscarContaBancariaPorNumero(numeroConta);
+        int numeroConta = bancoMemoria.criarConta("João");
+        ContaBancaria conta = bancoMemoria.buscarContaBancariaPorNumero(numeroConta);
 
         assertEquals(
                 "João", conta.getNomeTitular()
         );
 
         assertEquals(
-                new BigDecimal("600.00"), conta.getSaldo()
+                Dinheiro.ZERO, conta.getSaldo()
         );
 
         assertEquals(

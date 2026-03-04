@@ -1,61 +1,66 @@
 package br.com.sistemabancario.entities;
-
-
-import br.com.sistemabancario.exceptions.ValorInvalidoException;
-
-import java.math.BigDecimal;
+import br.com.sistemabancario.objectvalues.Dinheiro;
+import br.com.sistemabancario.repositories.BancoRepository;
 
 public class SistemaBancario {
 
-    private Banco banco;
+    private BancoRepository repositorio;
 
-    public SistemaBancario(Banco nomeBanco){
-        this.banco = nomeBanco;
+    public SistemaBancario(BancoRepository nomeBanco){
+        this.repositorio = nomeBanco;
     }
 
-    public Banco getBanco(){
-        return this.banco;
+    public BancoRepository getRepositorio(){
+        return this.repositorio;
     }
 
-    public void tranferencia(int numeroContaOrigem, int numeroContaDestino, BigDecimal valorTranferencia){
-        //validação para evitar chamar metodos, em um cenario onde a tranferencia ja nasceu invalida.
-        if (valorTranferencia.compareTo(BigDecimal.ZERO) <= 0){
-            throw new ValorInvalidoException("Valor de transferencia invalido");
-        }
-
-        ContaBancaria contaOrigem = banco.buscarContaBancariaPorNumero(numeroContaOrigem);
-        ContaBancaria contaDestino = banco.buscarContaBancariaPorNumero(numeroContaDestino);
+    public void tranferencia(int numeroContaOrigem, int numeroContaDestino, Dinheiro valorTranferencia){
+        ContaBancaria contaOrigem = repositorio.buscarContaBancariaPorNumero(numeroContaOrigem);
+        ContaBancaria contaDestino = repositorio.buscarContaBancariaPorNumero(numeroContaDestino);
 
         contaOrigem.transferir(contaDestino, valorTranferencia);
+
+        Integer IDTransacao = IDTransacao();
+        Transacao transferencia = Transacao.novaTransferencia(IDTransacao, contaOrigem, contaDestino, valorTranferencia);
+        contaOrigem.adicionarNoExtrato(transferencia);
+        contaDestino.adicionarNoExtrato(transferencia);
+        repositorio.salvarTransacao(IDTransacao, transferencia);
     }
 
-    public void sacar(int numeroDaConta, BigDecimal valorSaque){
-
-        if (valorSaque.compareTo(BigDecimal.ZERO) <= 0){
-            throw new ValorInvalidoException("Valor de saque invalido");
-        }
-
-        ContaBancaria contaRequestSaque = banco.buscarContaBancariaPorNumero(numeroDaConta);
+    public void sacar(int numeroDaConta, Dinheiro valorSaque){
+        ContaBancaria contaRequestSaque = repositorio.buscarContaBancariaPorNumero(numeroDaConta);
         contaRequestSaque.sacar(valorSaque);
+
+        Integer IDSaque = IDTransacao();
+        Transacao saque = Transacao.novoSaque(IDSaque, contaRequestSaque, valorSaque);
+        contaRequestSaque.adicionarNoExtrato(saque);
+        repositorio.salvarTransacao(IDSaque, saque);
     }
 
 
-    public void depositar(int numeroDaConta, BigDecimal valorDeposito){
-
-        if (valorDeposito.compareTo(BigDecimal.ZERO) <= 0){
-            throw new ValorInvalidoException("Valor de deposito invalido");
-        }
-
-        ContaBancaria contaRequestDeposito = banco.buscarContaBancariaPorNumero(numeroDaConta);
+    public void depositar(int numeroDaConta, Dinheiro valorDeposito){
+        ContaBancaria contaRequestDeposito = repositorio.buscarContaBancariaPorNumero(numeroDaConta);
         contaRequestDeposito.depositar(valorDeposito);
+
+        Integer IDDeposito = IDTransacao();
+        Transacao deposito = Transacao.novoDeposito(IDDeposito, contaRequestDeposito, valorDeposito);
+        contaRequestDeposito.adicionarNoExtrato(deposito);
+        repositorio.salvarTransacao(IDDeposito, deposito);
     }
 
     public int sistemaCriarConta(String nomeTitular){
-        return banco.criarConta(nomeTitular);
+        return repositorio.criarConta(nomeTitular);
     }
 
-    public int sistemaCriarContaComDepositoInicial(String nomeTitular, BigDecimal depositoInicial) {
-        return banco.criarConta(nomeTitular, depositoInicial);
+    public int sistemaCriarContaComDepositoInicial(String nomeTitular, Dinheiro depositoInicial) {
+        int numeroConta = sistemaCriarConta(nomeTitular);
+        depositar(numeroConta, depositoInicial);
+
+        return numeroConta;
+    }
+
+    private Integer IDTransacao(){
+        return repositorio.gerarIdTransacao();
     }
 }
 

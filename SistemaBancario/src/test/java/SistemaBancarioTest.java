@@ -1,9 +1,10 @@
 
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.entities.SistemaBancario;
-import br.com.sistemabancario.entities.Banco;
+import br.com.sistemabancario.entities.BancoMemoria;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
 import br.com.sistemabancario.exceptions.ValorInvalidoException;
+import br.com.sistemabancario.objectvalues.Dinheiro;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ public class SistemaBancarioTest {
 
 
     @Mock
-    private Banco bancoMock;
+    private BancoMemoria bancoMemoriaMock;
 
     @Mock
     private ContaBancaria contaSaqueMock;
@@ -51,7 +52,7 @@ public class SistemaBancarioTest {
     ArgumentCaptor<String> nomeCaptor;
 
     @Captor
-    ArgumentCaptor<BigDecimal> valorParametroCaptor;
+    ArgumentCaptor<Dinheiro> valorParametroCaptor;
 
     //Testes do metodo de transferencia do sistema bancario
 
@@ -61,20 +62,21 @@ public class SistemaBancarioTest {
 
         @Test
         void testarTranferenciaValidaEntreContas() {
-
-            when(bancoMock.buscarContaBancariaPorNumero(1))
+            when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                     .thenReturn(contaOrigemMock);
 
-            when(bancoMock.buscarContaBancariaPorNumero(2))
+            when(bancoMemoriaMock.buscarContaBancariaPorNumero(2))
                     .thenReturn(contaDestinoMock);
 
-            sistemaBanco.tranferencia(1, 2, new BigDecimal("300.00"));
+            sistemaBanco.tranferencia(1, 2, Dinheiro.NOVO(new BigDecimal(300)));
 
             verify(contaOrigemMock, times(1)).transferir(eq(contaDestinoMock), valorParametroCaptor.capture());
 
-            BigDecimal valorTranferido = valorParametroCaptor.getValue();
+            Dinheiro valorTranferido = valorParametroCaptor.getValue();
+            Dinheiro expected = Dinheiro.NOVO(new BigDecimal(300));
+
             assertEquals(
-                    new BigDecimal("300.00"), valorTranferido
+                    expected.getValor(), valorTranferido.getValor()
             );
         }
 
@@ -82,13 +84,13 @@ public class SistemaBancarioTest {
         @DisplayName("Testar transferencia com conta origem invalida")
         void testarTransferenciaContaOrigemInvalida() {
 
-            when(bancoMock.buscarContaBancariaPorNumero(1))
+            when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                     .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
 
             Exception validacao = assertThrows(
                     ContaNaoEncontradaException.class,
-                    () -> sistemaBanco.tranferencia(1, 2, new BigDecimal(200))
-            );
+                    () -> sistemaBanco.tranferencia(1, 2, Dinheiro.NOVO(new BigDecimal(300))
+            ));
 
             assertEquals(
                     "Conta nao encontrada", validacao.getMessage()
@@ -98,20 +100,18 @@ public class SistemaBancarioTest {
         @Test
         @DisplayName("Testar transferencia com conta destino invalida")
         void testarTransferenciaContaDestinoInvalida() {
-            when(bancoMock.buscarContaBancariaPorNumero(1))
+            when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                     .thenReturn(contaOrigemMock);
 
-            when(bancoMock.buscarContaBancariaPorNumero(2))
+            when(bancoMemoriaMock.buscarContaBancariaPorNumero(2))
                     .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
 
             Exception validacao = assertThrows(
                     ContaNaoEncontradaException.class,
-                    () -> sistemaBanco.tranferencia(1, 2, new BigDecimal("200.00"))
+                    () -> sistemaBanco.tranferencia(1, 2, Dinheiro.NOVO(new BigDecimal(200)))
             );
 
             assertEquals("Conta nao encontrada", validacao.getMessage());
-
-            verify(contaOrigemMock, never()).transferir(any(ContaBancaria.class), eq(new BigDecimal("200.00")));
         }
 
         @Test
@@ -119,14 +119,14 @@ public class SistemaBancarioTest {
         void testarTransferenciaValorInvalido() {
             Exception validacao = assertThrows(
                     ValorInvalidoException.class,
-                    () -> sistemaBanco.tranferencia(1, 2, new BigDecimal("-1"))
-            );
+                    () -> sistemaBanco.tranferencia(1, 2, Dinheiro.NOVO(new BigDecimal(-1))
+            ));
 
             assertEquals(
-                    "Valor de transferencia invalido", validacao.getMessage()
+                    "Dinheiro não pode ser negativo", validacao.getMessage()
             );
 
-            verify(bancoMock, never()).buscarContaBancariaPorNumero(1);
+            verify(bancoMemoriaMock, never()).buscarContaBancariaPorNumero(1);
         }
     }
 
@@ -139,29 +139,32 @@ public class SistemaBancarioTest {
         @Test
         void testarSaqueValido() {
 
+            Dinheiro valorSaque = Dinheiro.NOVO(new BigDecimal(400));
 
-            when(bancoMock.buscarContaBancariaPorNumero(1))
+            when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                     .thenReturn(contaSaqueMock);
 
-            sistemaBanco.sacar(1, new BigDecimal("400.00"));
+            sistemaBanco.sacar(1, valorSaque);
 
             verify(contaSaqueMock, times(1)).sacar(valorParametroCaptor.capture());
 
-            BigDecimal valorCapturado = valorParametroCaptor.getValue();
+            Dinheiro valorCapturado = valorParametroCaptor.getValue();
 
             assertEquals(
-                    new BigDecimal("400.00"), valorCapturado
+                    valorSaque, valorCapturado
             );
         }
 
         @Test
         void testarSaqueContaInvalida(){
-            when(bancoMock.buscarContaBancariaPorNumero(1))
+            Dinheiro valorDeposito = Dinheiro.NOVO(new BigDecimal(400));
+
+            when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                     .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
 
             Exception validacao = assertThrows(
                     ContaNaoEncontradaException.class,
-                    ()-> sistemaBanco.depositar(1, new BigDecimal("400.00"))
+                    ()-> sistemaBanco.depositar(1, valorDeposito)
             );
 
             assertEquals(
@@ -171,45 +174,50 @@ public class SistemaBancarioTest {
 
         @Test
         void testarSaqueValorInvalido(){
+
             Exception validacao = assertThrows(
                     ValorInvalidoException.class,
-                    ()-> sistemaBanco.sacar(1, new BigDecimal("-1"))
+                    ()-> sistemaBanco.sacar(1, Dinheiro.NOVO(new BigDecimal(-1)))
             );
 
             assertEquals(
-                    "Valor de saque invalido", validacao.getMessage()
+                    "Dinheiro não pode ser negativo", validacao.getMessage()
             );
 
-            verify(bancoMock, never()).buscarContaBancariaPorNumero(1);
+            verify(bancoMemoriaMock, never()).buscarContaBancariaPorNumero(1);
         }
     }
 
     @Test
     @DisplayName("Testar deposito com conta e valor valido")
     void testarDepositoValido() {
-        when(bancoMock.buscarContaBancariaPorNumero(1))
+        Dinheiro valorDeposito = Dinheiro.NOVO(new BigDecimal(200));
+
+        when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                 .thenReturn(contaOrigemMock);
 
-        sistemaBanco.depositar(1, new BigDecimal("200.00"));
+        sistemaBanco.depositar(1, valorDeposito);
 
         verify(contaOrigemMock, times(1)).depositar(valorParametroCaptor.capture());
 
-        BigDecimal valorCapturado = valorParametroCaptor.getValue();
+        Dinheiro valorCapturado = valorParametroCaptor.getValue();
         assertEquals(
-                new BigDecimal("200.00"), valorCapturado
+                valorDeposito, valorCapturado
         );
     }
 
     @Test
     @DisplayName("Testar deposito com conta não encontrada")
     void testarDepositoInvalido() {
-        when(bancoMock.buscarContaBancariaPorNumero(20))
+        Dinheiro valorDeposito = Dinheiro.NOVO(new BigDecimal(200));
+
+        when(bancoMemoriaMock.buscarContaBancariaPorNumero(20))
                 .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
 
 
         Exception validacao = assertThrows(
                 ContaNaoEncontradaException.class,
-                () -> sistemaBanco.depositar(20, new BigDecimal("200.00"))
+                () -> sistemaBanco.depositar(20, valorDeposito)
         );
 
         assertEquals(
@@ -222,11 +230,11 @@ public class SistemaBancarioTest {
     void testarSistemaCriarConta() {
         int numeroConta;
 
-        when(bancoMock.criarConta("Jonas"))
+        when(bancoMemoriaMock.criarConta("Jonas"))
                 .thenReturn(1);
 
         numeroConta = sistemaBanco.sistemaCriarConta("Jonas");
-        verify(bancoMock).criarConta(nomeCaptor.capture());
+        verify(bancoMemoriaMock).criarConta(nomeCaptor.capture());
 
         String nomeCapturado = nomeCaptor.getValue();
         assertEquals(

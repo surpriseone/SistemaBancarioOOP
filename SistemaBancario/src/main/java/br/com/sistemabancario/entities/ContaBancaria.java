@@ -5,17 +5,17 @@ import br.com.sistemabancario.exceptions.TitularEmptyException;
 import br.com.sistemabancario.exceptions.TitularNullException;
 import br.com.sistemabancario.exceptions.TranferirParaMesmaContaException;
 import br.com.sistemabancario.exceptions.ValorInvalidoException;
+import br.com.sistemabancario.objectvalues.Dinheiro;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ContaBancaria {
 
     private int numeroDaConta;
     private String nomeTitular;
-    private BigDecimal saldo;
-    private ArrayList<String> extrato = new ArrayList<>();
+    private Dinheiro saldo;
+    private List<Transacao> extrato = new ArrayList<>();
 
 
     // Construtores
@@ -31,16 +31,10 @@ public class ContaBancaria {
 
         this.numeroDaConta = numeroConta;
         this.nomeTitular = nomeTitular;
-        this.saldo = BigDecimal.ZERO;
-    }
-
-    public ContaBancaria(String nomeTitular, int numeroConta, BigDecimal DepositoInicial){
-        this(nomeTitular, numeroConta);
-        this.depositar(DepositoInicial);
+        this.saldo = Dinheiro.ZERO;
     }
 
 // Metodos Get
-
     public int getNumeroDaConta(){
         return this.numeroDaConta;
     }
@@ -49,7 +43,7 @@ public class ContaBancaria {
         return this.nomeTitular;
     }
 
-    public BigDecimal getSaldo(){
+    public Dinheiro getSaldo(){
         return this.saldo;
     }
 
@@ -67,64 +61,62 @@ public class ContaBancaria {
         this.nomeTitular = novoNomeTitular;
     }
 
-
+    public void adicionarNoExtrato(Transacao transacao){
+        extrato.add(transacao);
+    }
 
 // Regras e validações de entrada sobre operações bancarias vindas do SistemaBancario (Depositar, sacar, transferir)
 
-    public void depositar(BigDecimal valorDeposito){
+    public void depositar(Dinheiro valorDeposito){
         if (valorDeposito == null){
             throw new ValorInvalidoException("Valor não pode ser nulo");
         }
 
-        if(valorDeposito.compareTo(BigDecimal.ZERO) <= 0){
+        if(valorDeposito.comparar(Dinheiro.ZERO) <= 0){
             throw new ValorInvalidoException("O valor do deposito deve ser maior que 0");
         }
 
-        this.saldo = this.saldo.add(setarPontoFlutuante(valorDeposito));
-        this.extrato(1, valorDeposito, null);  //1 deposito
+        this.saldo = this.saldo.somar(valorDeposito);
     }
 
 
-    public void sacar(BigDecimal valorSaque){
+    public void sacar(Dinheiro valorSaque){
 
-        if (valorSaque.compareTo(BigDecimal.ZERO) <= 0){
+        if (valorSaque.comparar(Dinheiro.ZERO) <= 0){
             throw new ValorInvalidoException("O valor do saque deve ser maior que zero");
         }
 
-        if (valorSaque.compareTo(this.saldo) > 0){
+        if (valorSaque.comparar(this.saldo) > 0){
             throw new SaldoInsuficienteException("Saldo insuficiente");
         }
 
-        this.saldo = this.saldo.subtract(setarPontoFlutuante(valorSaque));
-        this.extrato(2, valorSaque, null); //2 saque
+        this.saldo = this.saldo.subtrair(valorSaque);
     }
 
 
 
-    public void transferir(ContaBancaria conta, BigDecimal valorTranferencia){
+    public void transferir(ContaBancaria conta, Dinheiro valorTranferencia){
 
         if (this.getNumeroDaConta() == conta.getNumeroDaConta()){
             throw new TranferirParaMesmaContaException("Você não pode transferir pra mesma conta");
         }
-        if(valorTranferencia.compareTo(BigDecimal.ZERO) <= 0){
+        if(valorTranferencia.comparar(Dinheiro.ZERO) <= 0){
             throw new ValorInvalidoException("Valor da tranferencia deve ser maior que zero");
         }
-        if (valorTranferencia.compareTo(this.saldo) > 0){
+        if (valorTranferencia.comparar(this.saldo) > 0){
             throw new SaldoInsuficienteException("Saldo insuficiente");
         }
 
-        this.enviarTranferencia(conta, valorTranferencia);
-        conta.receberTranferencia(this, valorTranferencia);
+        this.debitar(valorTranferencia);
+        conta.creditar(valorTranferencia);
     }
 
-    private void receberTranferencia(ContaBancaria remetente, BigDecimal valorRecebido){
-        this.saldo = this.saldo.add(setarPontoFlutuante(valorRecebido));
-        this.extrato(3, valorRecebido, remetente); //3 Tranferencia recebida
+    private void creditar(Dinheiro valorRecebido){
+        this.saldo = this.saldo.somar(valorRecebido);
     }
 
-    private void enviarTranferencia(ContaBancaria destinatario, BigDecimal valorEnviado){
-        this.saldo = this.saldo.subtract(setarPontoFlutuante(valorEnviado));
-        this.extrato(4, valorEnviado, destinatario); //4 Tranferencia enviada
+    private void debitar(Dinheiro valorEnviado){
+        this.saldo = this.saldo.subtrair(valorEnviado);
     }
 
 
@@ -136,53 +128,9 @@ public class ContaBancaria {
                 + this.numeroDaConta + " | Saldo em conta: " + this.saldo + "\n";
     }
 
-// Extrato bancario
-
-    private void extrato(int tipoOperacao, BigDecimal valor, ContaBancaria conta){
-        String historico;
-        int numeroContaParametro = 0;
-        String nomeContaParametro = null;
-
-        if (conta != null){
-            numeroContaParametro = conta.getNumeroDaConta();
-            nomeContaParametro = conta.getNomeTitular();
+    public void imprimirExtrato() {
+        for(Transacao historico: extrato){
+            System.out.println(historico.formatarParaExtrato(this));
         }
-
-        switch (tipoOperacao) {
-            case 1:
-                historico = String.format("Deposito: +R$%.2f%n", valor);
-                extrato.add(historico);
-                break;
-            case 2:
-                historico = String.format("Saque: -R$%.2f%n", valor);
-                extrato.add(historico);
-                break;
-            case 3:
-                historico = String.format("Tranferencia recebida de: %s, conta: %d +R$%.2f%n",
-                        nomeContaParametro, numeroContaParametro, valor);
-                extrato.add(historico);
-                break;
-            case 4:
-                historico = String.format("Tranferencia enviada para: %s, conta: %d -R$%.2f%n",
-                        nomeContaParametro, numeroContaParametro, valor);
-                extrato.add(historico);
-                break;
-            default:
-                throw new AssertionError();
-        }
-
-    }
-
-    public void imprimirExtrato(){
-        System.out.println("Extrato da conta : ");
-        for (String historico : extrato){
-            System.out.print(historico);
-        }
-        System.out.println("Saldo da atual da conta: " + this.saldo);
-    }
-
-
-    private BigDecimal setarPontoFlutuante(BigDecimal valorParaPadronizar){
-        return valorParaPadronizar.setScale(2, RoundingMode.HALF_UP); // valor formatado
     }
 }

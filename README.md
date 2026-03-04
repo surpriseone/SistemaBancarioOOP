@@ -32,71 +32,22 @@ Consolidar fundamentos sólidos de backend antes da introdução de frameworks c
 ## 🚀 Funcionalidades
 
 - ✔ Criação de conta bancária  
-- ✔ Busca de conta por número  
-- ✔ Depósito  
-- ✔ Saque  
-- ✔ Transferência entre contas  
-- ✔ Tratamento de exceções customizadas  
+- ✔ Busca de conta por número
+- ✔ Transações `Transferencia`, `Deposito`, `Saque`
+- ✔ Salvar transações com ID unico
+- ✔ Tratamento de exceções customizadas   
 - ✔ Testes unitários completos  
 
 ---
 
 ## 🧠 Arquitetura e Design
 
-O sistema foi organizado em três responsabilidades principais:
+Dividi o projeto em responsabilidades claras:
 
-### 🔹 ContaBancaria
-
-Responsável por:
-
-- Proteger o saldo
-- Garantir invariantes do domínio
-- Implementar regras de negócio
-- Lançar exceções quando necessário
-
-#### Regras implementadas:
-
-- Não permite depósito com valor negativo  `valorInvalidoException`
-- Não permite saque com valor negativo  `valorInvalidoException`
-- Não permite saque maior que o saldo  `saldoInsuficienteException`
-- Não permite transferência com valor inválido  `valorInvalidoException`
-- Não permite transferência para a mesma conta  `tranferirParaMesmaContaException`
-
-> Cada regra com sua propria exception personalizada para permitir melhor clareza
-
-
-### 🔹 Banco
-
-Responsável por:
-
-- Armazenar contas utilizando `HashMap`
-- Gerenciar criação de contas
-- Buscar contas por número
-
-
-### 🔹 SistemaBancario 
-
-Camada de orquestração responsável por:
-
-- Coordenar operações
-- Realizar validações estruturais
-- Atribuir regras financeiras ao dominio
-
-Não contém lógica financeira, apenas coordenação.
-
----
-
-## ⚡ Validação de Dados
-
-O sistema aplica validação antecipada de parâmetros na camada de aplicação para:
-
-- Evitar execução desnecessária
-- Melhorar clareza de fluxo
-- Tornar testes mais previsíveis
-
-Entretanto, as regras críticas continuam protegidas na entidade de domínio.
-
----
+1. **Entities (`ContaBancaria`, `Transacao`):** Onde mora o coração do negócio. Aqui ficam as regras de quem pode ou não tirar dinheiro.
+2. **Object Values (`Dinheiro`):** Um objeto que só serve para garantir que o dinheiro seja sempre válido (2 casas decimais e nunca negativo), Antes tinha varias validações no sistema para evitar chamar metodos que ja nasceram invalidos por conta de valor invalido, então o Objeto Dinheiro soluciona isso em um lugar so e lança a exceção `ValorInvalidoException` se necessario.
+3. **Services (`SistemaBancario`):** Ele não faz contas, ele apenas organiza: chama o banco, pede para a conta realizar a transação e manda o BancoMemoria salvar a transação.
+4. **Repositories (`BancoRepository` Interface):** Implementei a inteface pensando em entrar em banco de dados mais pra frente, para ja separar responsabilidades desde o inicio, seguindo o principio de baixo acoplamento.
 
 ## 🧪 Testes
 
@@ -104,16 +55,8 @@ O projeto utiliza:
 
 - **JUnit 5**
 - **Mockito** > Usando o principio de nunca mockar a classe que está sendo testada.
-
----
-
-## 🧩 Princípios Aplicados
-
-- Encapsulamento forte
-- Separação de responsabilidades
-- Testes isolados
-- Clareza de fluxo
-
+- **Argument Captor** > Usei para "interceptar" o que estava sendo enviado entre as classes e conferir se os valores estavam corretos.
+  
 ---
 
 ## 🛠 Tecnologias
@@ -131,7 +74,6 @@ O projeto utiliza:
 - Camada REST (Controller)
 - DTOs
 - Persistência com banco de dados
-- Testes de integração
 
 ---
 

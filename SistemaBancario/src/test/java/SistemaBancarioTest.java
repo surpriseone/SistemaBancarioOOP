@@ -1,7 +1,8 @@
 
 import br.com.sistemabancario.entities.ContaBancaria;
-import br.com.sistemabancario.entities.SistemaBancario;
-import br.com.sistemabancario.entities.BancoMemoria;
+import br.com.sistemabancario.objectvalues.CPF;
+import br.com.sistemabancario.services.SistemaBancario;
+import br.com.sistemabancario.repositories.Memory.ContaMemory;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
 import br.com.sistemabancario.exceptions.ValorInvalidoException;
 import br.com.sistemabancario.objectvalues.Dinheiro;
@@ -27,7 +28,7 @@ public class SistemaBancarioTest {
 
 
     @Mock
-    private BancoMemoria bancoMemoriaMock;
+    private ContaMemory bancoMemoriaMock;
 
     @Mock
     private ContaBancaria contaSaqueMock;
@@ -50,6 +51,9 @@ public class SistemaBancarioTest {
 
     @Captor
     ArgumentCaptor<String> nomeCaptor;
+
+    @Captor
+    ArgumentCaptor<CPF> numeroCPF;
 
     @Captor
     ArgumentCaptor<Dinheiro> valorParametroCaptor;
@@ -104,18 +108,20 @@ public class SistemaBancarioTest {
                     .thenReturn(contaOrigemMock);
 
             when(bancoMemoriaMock.buscarContaBancariaPorNumero(2))
-                    .thenThrow(new ContaNaoEncontradaException("Conta nao encontrada"));
+                    .thenThrow(new ContaNaoEncontradaException("Conta não encontrada"));
 
             Exception validacao = assertThrows(
                     ContaNaoEncontradaException.class,
                     () -> sistemaBanco.tranferencia(1, 2, Dinheiro.NOVO(new BigDecimal(200)))
             );
 
-            assertEquals("Conta nao encontrada", validacao.getMessage());
+            verify(contaOrigemMock, never()).sacar(Dinheiro.NOVO(new BigDecimal(200)));
+
+            assertEquals("Conta não encontrada", validacao.getMessage());
         }
 
         @Test
-        @DisplayName("Tetar tranferencia com valor de parametro invalido")
+        @DisplayName("Testar tranferencia com valor de parametro invalido")
         void testarTransferenciaValorInvalido() {
             Exception validacao = assertThrows(
                     ValorInvalidoException.class,
@@ -123,7 +129,7 @@ public class SistemaBancarioTest {
             ));
 
             assertEquals(
-                    "Dinheiro não pode ser negativo", validacao.getMessage()
+                    "Valor não pode ser negativo", validacao.getMessage()
             );
 
             verify(bancoMemoriaMock, never()).buscarContaBancariaPorNumero(1);
@@ -147,7 +153,6 @@ public class SistemaBancarioTest {
             sistemaBanco.sacar(1, valorSaque);
 
             verify(contaSaqueMock, times(1)).sacar(valorParametroCaptor.capture());
-
             Dinheiro valorCapturado = valorParametroCaptor.getValue();
 
             assertEquals(
@@ -181,7 +186,7 @@ public class SistemaBancarioTest {
             );
 
             assertEquals(
-                    "Dinheiro não pode ser negativo", validacao.getMessage()
+                    "Valor não pode ser negativo", validacao.getMessage()
             );
 
             verify(bancoMemoriaMock, never()).buscarContaBancariaPorNumero(1);
@@ -230,15 +235,21 @@ public class SistemaBancarioTest {
     void testarSistemaCriarConta() {
         int numeroConta;
 
-        when(bancoMemoriaMock.criarConta("Jonas"))
+        when(bancoMemoriaMock.criarConta("Jonas", CPF.of("10020030040")))
                 .thenReturn(1);
 
-        numeroConta = sistemaBanco.sistemaCriarConta("Jonas");
-        verify(bancoMemoriaMock).criarConta(nomeCaptor.capture());
+        numeroConta = sistemaBanco.sistemaCriarConta("Jonas", "10020030040");
+        verify(bancoMemoriaMock).criarConta(nomeCaptor.capture(), numeroCPF.capture());
 
         String nomeCapturado = nomeCaptor.getValue();
+        CPF cpfCapturado = numeroCPF.getValue();
         assertEquals(
-                "Jonas", nomeCapturado);
+                "Jonas", nomeCapturado
+        );
+
+        assertEquals(
+                "10020030040", cpfCapturado.valor()
+        );
 
         assertEquals(
                 1, numeroConta);

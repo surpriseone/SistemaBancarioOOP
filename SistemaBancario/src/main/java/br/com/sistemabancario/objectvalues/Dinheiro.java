@@ -10,15 +10,16 @@ public final class Dinheiro {
 
     private Dinheiro(BigDecimal valor){
         validacao(valor);
-        this.valor = valor.setScale(2, RoundingMode.HALF_EVEN);
+        this.valor = valor
+                .setScale(2, RoundingMode.HALF_EVEN);
     }
 
     private static void validacao(BigDecimal valor){
         if (valor == null){
-            throw new ValorInvalidoException("Dinheiro não pode ser nulo");
+            throw new ValorInvalidoException("Valor não pode ser nulo");
         }
         if (valor.compareTo(BigDecimal.ZERO) < 0){
-            throw new ValorInvalidoException("Dinheiro não pode ser negativo");
+            throw new ValorInvalidoException("Valor não pode ser negativo");
         }
     }
 

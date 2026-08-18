@@ -1,8 +1,9 @@
 
 
-import br.com.sistemabancario.entities.BancoMemoria;
+import br.com.sistemabancario.objectvalues.CPF;
+import br.com.sistemabancario.repositories.Memory.ContaMemory;
 import br.com.sistemabancario.entities.ContaBancaria;
-import br.com.sistemabancario.entities.SistemaBancario;
+import br.com.sistemabancario.services.SistemaBancario;
 import br.com.sistemabancario.exceptions.SaldoInsuficienteException;
 import br.com.sistemabancario.exceptions.TranferirParaMesmaContaException;
 import br.com.sistemabancario.exceptions.ValorInvalidoException;
@@ -16,14 +17,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ContaBancariaTest {
     private SistemaBancario sistema;
-    private BancoMemoria bancoMemoria;
+    private ContaMemory bancoMemoria;
     protected ContaBancaria contaUsuario1;
     protected ContaBancaria contaUsuario2;
 
     @BeforeEach
         public void criarConta() {
-            contaUsuario1 = new ContaBancaria("Usuario1", 12);
-            contaUsuario2 = new ContaBancaria("Usuario2", 22);
+            contaUsuario1 = new ContaBancaria("Usuario1", 12, CPF.of("12345678910"));
+            contaUsuario2 = new ContaBancaria("Usuario2", 22, CPF.of("11122233344"));
             contaUsuario1.depositar(Dinheiro.NOVO(new BigDecimal(10)));
     }
 
@@ -45,7 +46,7 @@ public class ContaBancariaTest {
         );
 
         assertEquals(
-                "Dinheiro não pode ser negativo", validacao.getMessage()
+                "Valor não pode ser negativo", validacao.getMessage()
         );
     }
 

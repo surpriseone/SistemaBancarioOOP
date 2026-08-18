@@ -1,10 +1,11 @@
 
 
-import br.com.sistemabancario.entities.BancoMemoria;
+import br.com.sistemabancario.objectvalues.CPF;
+import br.com.sistemabancario.repositories.Memory.ContaMemory;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
 import br.com.sistemabancario.objectvalues.Dinheiro;
-import br.com.sistemabancario.repositories.BancoRepository;
+import br.com.sistemabancario.repositories.Intefaces.ContaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +21,7 @@ public class BancoTest {
 
 
 
-    private BancoRepository bancoMemoria;
+    private ContaRepository bancoMemoria;
 
     ContaBancaria contaTeste;
 
@@ -29,9 +30,9 @@ public class BancoTest {
 
     @BeforeEach
     public void setUp(){
-        bancoMemoria = new BancoMemoria("Banco Teste");
-        contaTeste = new ContaBancaria("Jose", 10);
-        bancoMemoria.adicionarConta(contaTeste);
+        bancoMemoria = new ContaMemory();
+        contaTeste = new ContaBancaria("Jose", 10, CPF.of("91120080012"));
+        bancoMemoria.salvarConta(contaTeste);
     }
 
 
@@ -42,6 +43,7 @@ public class BancoTest {
         ContaBancaria contaRetornada = bancoMemoria.buscarContaBancariaPorNumero(numeroDaConta);
         assertEquals(contaTeste, contaRetornada);
         assertEquals(contaTeste.getNumeroDaConta(), contaRetornada.getNumeroDaConta());
+        assertEquals(contaTeste.getCPF(), contaRetornada.getCPF());
         assertEquals(contaTeste.getSaldo(), contaRetornada.getSaldo());
         assertEquals(contaTeste.getNomeTitular(), contaRetornada.getNomeTitular());
     }
@@ -62,12 +64,14 @@ public class BancoTest {
 
     @Test
     void testarCriacaoContaComDeposito(){
-        int numeroConta = bancoMemoria.criarConta("João");
+        int numeroConta = bancoMemoria.criarConta("João", CPF.of("12345678911"));
         ContaBancaria conta = bancoMemoria.buscarContaBancariaPorNumero(numeroConta);
 
         assertEquals(
                 "João", conta.getNomeTitular()
         );
+
+        assertEquals("12345678911", conta.getCPF().valor());
 
         assertEquals(
                 Dinheiro.ZERO, conta.getSaldo()

@@ -3,16 +3,21 @@ package br.com.sistemabancario.application;
 
 
 
-import br.com.sistemabancario.entities.BancoMemoria;
-import br.com.sistemabancario.entities.SistemaBancario;
+import br.com.sistemabancario.factory.ConnectionFactory;
+import br.com.sistemabancario.repositories.Intefaces.TransacaoRepository;
+import br.com.sistemabancario.repositories.Memory.ContaMemory;
+import br.com.sistemabancario.repositories.SQL.ContaRepositorySQL;
+import br.com.sistemabancario.repositories.SQL.TransacaoRepositorySQL;
+import br.com.sistemabancario.services.SistemaBancario;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
 import br.com.sistemabancario.exceptions.SaldoInsuficienteException;
 import br.com.sistemabancario.exceptions.TranferirParaMesmaContaException;
 import br.com.sistemabancario.exceptions.ValorInvalidoException;
 import br.com.sistemabancario.objectvalues.Dinheiro;
-import br.com.sistemabancario.repositories.BancoRepository;
+import br.com.sistemabancario.repositories.Intefaces.ContaRepository;
 
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.util.Scanner;
 import java.util.Locale;
 
@@ -20,14 +25,19 @@ import java.util.Locale;
 public class Main {
     public static void main(String[] args){
         Locale.setDefault(Locale.US);
-        BancoRepository NewBank = new BancoMemoria("New Bank");
-        SistemaBancario sistemaNewBank = new SistemaBancario(NewBank);
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Jose", Dinheiro.NOVO(new BigDecimal(600)));
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Felype", Dinheiro.NOVO(new BigDecimal(200)));
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Maycon", Dinheiro.NOVO(new BigDecimal(1000)));
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Luis", Dinheiro.NOVO(new BigDecimal(2000)));
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Marta", Dinheiro.NOVO(new BigDecimal(3000)));
-        sistemaNewBank.sistemaCriarContaComDepositoInicial("Neymar", Dinheiro.NOVO(new BigDecimal(20000)));
+
+
+        ConnectionFactory factory = new ConnectionFactory();
+        Connection connection = factory.recuperarConexao();
+        ContaRepository NewBank = new ContaRepositorySQL(connection);
+        TransacaoRepository transacaoRepository = new TransacaoRepositorySQL(connection, NewBank);
+        SistemaBancario sistemaBancario = new SistemaBancario(NewBank, transacaoRepository, connection);
+        sistemaBancario.sistemaCriarContaComDepositoInicial("Jose", "12345678910",Dinheiro.NOVO(new BigDecimal(600)));
+        sistemaBancario.sistemaCriarContaComDepositoInicial("Felype", "12345678910",Dinheiro.NOVO(new BigDecimal(200)));
+        sistemaBancario.sistemaCriarContaComDepositoInicial("Maycon", "12345678910",Dinheiro.NOVO(new BigDecimal(1000)));
+        sistemaBancario.sistemaCriarContaComDepositoInicial("Luis", "12345678910",Dinheiro.NOVO(new BigDecimal(2000)));
+        sistemaBancario.sistemaCriarContaComDepositoInicial("Marta", "12345678910",Dinheiro.NOVO(new BigDecimal(3000)));
+        sistemaBancario.sistemaCriarContaComDepositoInicial("Neymar", "12345678910",Dinheiro.NOVO(new BigDecimal(20000)));
 
 
         Scanner sc = new Scanner(System.in);
@@ -44,10 +54,10 @@ public class Main {
         if (Character.toUpperCase(option) == 'S'){
             System.out.println("Digite o valor do deposito: ");
             valorDeposito = sc.nextBigDecimal();
-            contaUsuario = sistemaNewBank.sistemaCriarContaComDepositoInicial(nome, Dinheiro.NOVO(valorDeposito));
+            contaUsuario = sistemaBancario.sistemaCriarContaComDepositoInicial(nome, "12345678910",Dinheiro.NOVO(valorDeposito));
         }
         else{
-            contaUsuario = sistemaNewBank.sistemaCriarConta(nome);
+            contaUsuario = sistemaBancario.sistemaCriarConta(nome, "12345678910");
         }
 
         int execucao;
@@ -73,7 +83,7 @@ public class Main {
                     System.out.println("Valor do deposito: ");
                     try {
                         valorDeposito = sc.nextBigDecimal();
-                        sistemaNewBank.depositar(contaUsuario, Dinheiro.NOVO(valorDeposito));
+                        sistemaBancario.depositar(contaUsuario, Dinheiro.NOVO(valorDeposito));
                     } catch (ValorInvalidoException e) {
                         System.out.println("Error 400: " + e.getMessage());
                     }
@@ -82,7 +92,7 @@ public class Main {
                     System.out.println("Valor do saque: ");
                     try {
                         valorSaque = sc.nextBigDecimal();
-                        sistemaNewBank.sacar(contaUsuario, Dinheiro.NOVO(valorSaque));
+                        sistemaBancario.sacar(contaUsuario, Dinheiro.NOVO(valorSaque));
                     } catch (ValorInvalidoException e) {
                         System.out.println("Error 400: " + e.getMessage());
                     } catch (SaldoInsuficienteException e) {
@@ -95,7 +105,7 @@ public class Main {
                         numeroContaDestino = sc.nextInt();
                         System.out.println("Digite o valor da tranferencia: ");
                         valorTranferencia = sc.nextBigDecimal();
-                        sistemaNewBank.tranferencia(contaUsuario, numeroContaDestino, Dinheiro.NOVO(valorTranferencia));
+                        sistemaBancario.tranferencia(contaUsuario, numeroContaDestino, Dinheiro.NOVO(valorTranferencia));
                     } catch (ValorInvalidoException e) {
                         System.out.println("Error 400: " + e.getMessage());
                     } catch (SaldoInsuficienteException | TranferirParaMesmaContaException e) {

@@ -6,20 +6,20 @@ import java.time.format.DateTimeFormatter;
 
 public final class Transacao {
 
-    private final Integer ID;
+    private final Integer CodigoTransacao;
     private final TipoTransacao tipoDeTransacao;
     private final Dinheiro valor;
     private final ContaBancaria contaOrigem;
     private final ContaBancaria contaDestino;
     private final LocalDateTime dataHora;
 
-   private Transacao(Integer ID,
+   private Transacao(Integer codigoTransacao,
                      TipoTransacao tipo,
                      Dinheiro valorParametro,
                      ContaBancaria contaOrigem,
                      ContaBancaria contaDestino) {
 
-        this.ID = ID;
+        this.CodigoTransacao = codigoTransacao;
         this.tipoDeTransacao = tipo;
         this.valor = valorParametro;
         this.contaOrigem = contaOrigem;
@@ -27,6 +27,9 @@ public final class Transacao {
         this.dataHora = LocalDateTime.now();
     }
 
+    public Integer getNumeroTransacao(){
+       return this.CodigoTransacao;
+    }
     public TipoTransacao getTipoDeTransacao() {
         return tipoDeTransacao;
     }
@@ -35,8 +38,16 @@ public final class Transacao {
         return dataHora;
     }
 
-    public Dinheiro getValor() {
+    public Dinheiro getValorTransacao() {
         return valor;
+    }
+
+    public ContaBancaria getContaDestino() {
+        return contaDestino;
+    }
+
+    public ContaBancaria getContaOrigem() {
+        return contaOrigem;
     }
 
     public String formatarParaExtrato(ContaBancaria contaQuePuxouExtrato) {
@@ -68,11 +79,37 @@ public final class Transacao {
         return new Transacao(ID, TipoTransacao.TRANSFERENCIA, valorParametro, contaOrigem, contaDestino);
     }
 
-    public static Transacao novoDeposito(Integer ID, ContaBancaria contaDestino, Dinheiro valorParametro) {
-        return new Transacao(ID, TipoTransacao.DEPOSITO, valorParametro, null, contaDestino);
+    public static Transacao novoDeposito(Integer ID, ContaBancaria contaOrigem, Dinheiro valorParametro) {
+        return new Transacao(ID, TipoTransacao.DEPOSITO, valorParametro, contaOrigem, null);
     }
 
     public static Transacao novoSaque(Integer ID, ContaBancaria contaOrigem, Dinheiro valorParametro) {
         return new Transacao(ID, TipoTransacao.SAQUE, valorParametro, contaOrigem, null);
+    }
+
+//Reconstituir transação vinda do banco
+    private Transacao(Integer codigoTransacao,
+                     TipoTransacao tipo,
+                     Dinheiro valorParametro,
+                     ContaBancaria contaOrigem,
+                     ContaBancaria contaDestino,
+                     LocalDateTime data) {
+
+        this.CodigoTransacao = codigoTransacao;
+        this.tipoDeTransacao = tipo;
+        this.valor = valorParametro;
+        this.contaOrigem = contaOrigem;
+        this.contaDestino = contaDestino;
+        this.dataHora = data;
+    }
+
+    public static Transacao reconstituirTransacao(Integer codigoTransacao,
+                                                  TipoTransacao tipo,
+                                                  Dinheiro valorParametro,
+                                                  ContaBancaria contaOrigem,
+                                                  ContaBancaria contaDestino,
+                                                  LocalDateTime data) {
+
+       return new Transacao(codigoTransacao, tipo, valorParametro, contaOrigem, contaDestino, data);
     }
 }

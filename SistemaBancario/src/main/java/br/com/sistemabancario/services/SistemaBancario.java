@@ -45,7 +45,10 @@ public class SistemaBancario {
             contaRepositorio.atualizarSaldo(contaDestino);
 
             confirmarAlteracoes();
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
+            cancelarTransacao();
+            throw e;
+        } catch (SQLException e){
             cancelarTransacao();
         } finally {
             try {
@@ -72,21 +75,25 @@ public class SistemaBancario {
             contaRepositorio.atualizarSaldo(contaRequestSaque);
 
             confirmarAlteracoes();
-        }catch (Exception e){
+        } catch (RuntimeException e) {
             cancelarTransacao();
-        }finally {
+            throw e;
+        } catch (SQLException e){
+            cancelarTransacao();
+        } finally {
             try{
                 religarAutoCommit();
             }catch (SQLException e){
                 System.out.println(e.getMessage());
             }
+
         }
 
     }
 
 
     public void depositar(int numeroDaConta, Dinheiro valorDeposito){
-        try{
+        try {
             prepararTransacao();
 
             ContaBancaria contaRequestDeposito = contaRepositorio.buscarContaBancariaPorNumero(numeroDaConta);
@@ -99,9 +106,12 @@ public class SistemaBancario {
             contaRepositorio.atualizarSaldo(contaRequestDeposito);
 
             confirmarAlteracoes();
-        }catch (Exception e){
+        } catch (RuntimeException e) {
             cancelarTransacao();
-        }finally {
+            throw e;
+        } catch (SQLException e){
+            cancelarTransacao();
+        } finally {
             try{
                 religarAutoCommit();
             }catch (SQLException e){

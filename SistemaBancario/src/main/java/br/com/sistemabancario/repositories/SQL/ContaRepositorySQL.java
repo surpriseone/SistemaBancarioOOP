@@ -2,6 +2,7 @@ package br.com.sistemabancario.repositories.SQL;
 
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
+import br.com.sistemabancario.exceptions.DataBaseException;
 import br.com.sistemabancario.objectvalues.CPF;
 import br.com.sistemabancario.objectvalues.Dinheiro;
 import br.com.sistemabancario.repositories.Intefaces.ContaRepository;
@@ -33,7 +34,7 @@ public class ContaRepositorySQL implements ContaRepository {
             stmt.execute();
             return true;
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao salvar conta!", e);
+            throw new DataBaseException("Erro ao salvar conta!");
         }
     }
 
@@ -65,7 +66,7 @@ public class ContaRepositorySQL implements ContaRepository {
                 }
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar conta no banco", e);
+            throw new DataBaseException("Erro ao buscar conta no banco");
         }
 
         throw new ContaNaoEncontradaException("Conta não encontrada");
@@ -81,7 +82,7 @@ public class ContaRepositorySQL implements ContaRepository {
                 return result.getInt(1);
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Erro ao buscar a quantidade de contas!", e);
+            throw new DataBaseException("Erro ao buscar a quantidade de contas!");
         }
 
         return 0;
@@ -104,7 +105,7 @@ public class ContaRepositorySQL implements ContaRepository {
                 }
 
             } catch (SQLException e) {
-                throw new RuntimeException("Erro ao gerar numero da conta", e);
+                throw new DataBaseException("Erro ao gerar numero da conta");
             }
 
         } while (numeroExiste);
@@ -123,12 +124,12 @@ public class ContaRepositorySQL implements ContaRepository {
             int linhasAfetadas = stmt.executeUpdate();
 
             if(linhasAfetadas == 0){
-                throw new RuntimeException("Não foi possivel atualizar o saldo: Conta não existe");
+                throw new ContaNaoEncontradaException("Não foi possivel atualizar o saldo: Conta não existe");
             }
 
             return true;
         } catch (SQLException e){
-            throw new RuntimeException("Ocorreu um erro!", e);
+            throw new DataBaseException("Ocorreu um erro!");
         }
     }
 }

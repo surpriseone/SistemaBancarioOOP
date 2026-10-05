@@ -1,5 +1,7 @@
 package br.com.sistemabancario.objectvalues;
 
+import java.util.Objects;
+
 public final class CPF {
     private final String cpf;
 
@@ -20,5 +22,18 @@ public final class CPF {
 
     public String valor(){
         return cpf;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        CPF cpf1 = (CPF) o;
+        return Objects.equals(cpf, cpf1.cpf);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(cpf);
     }
 }

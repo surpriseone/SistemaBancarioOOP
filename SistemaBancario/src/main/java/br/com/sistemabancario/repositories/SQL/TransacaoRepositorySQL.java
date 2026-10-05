@@ -3,6 +3,7 @@ package br.com.sistemabancario.repositories.SQL;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.entities.TipoTransacao;
 import br.com.sistemabancario.entities.Transacao;
+import br.com.sistemabancario.exceptions.DataBaseException;
 import br.com.sistemabancario.exceptions.TransacaoNaoEncontradaException;
 import br.com.sistemabancario.objectvalues.Dinheiro;
 import br.com.sistemabancario.repositories.Intefaces.ContaRepository;
@@ -43,7 +44,7 @@ public class TransacaoRepositorySQL implements TransacaoRepository {
                 }
 
             }catch (SQLException e){
-                throw new RuntimeException("Erro ao gerar numero da transação", e);
+                throw new DataBaseException("Erro ao gerar numero da transação");
             }
 
         }while(numeroExiste);
@@ -72,7 +73,7 @@ public class TransacaoRepositorySQL implements TransacaoRepository {
             stmt.executeUpdate();
 
         }catch (SQLException e){
-            throw new RuntimeException("Erro ao salvar Transação", e);
+            throw new DataBaseException("Erro ao salvar Transação");
         }
     }
 
@@ -110,7 +111,7 @@ public class TransacaoRepositorySQL implements TransacaoRepository {
                 }
             }
         }catch (SQLException e){
-            throw new RuntimeException("Erro ao buscar transação", e);
+            throw new DataBaseException("Erro ao buscar transação");
         }
         throw new TransacaoNaoEncontradaException("Transação não encontrada");
     }

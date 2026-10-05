@@ -1,6 +1,7 @@
 
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.objectvalues.CPF;
+import br.com.sistemabancario.repositories.Intefaces.TransacaoRepository;
 import br.com.sistemabancario.services.SistemaBancario;
 import br.com.sistemabancario.repositories.Memory.ContaMemory;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
@@ -25,8 +26,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SistemaBancarioTest {
-
-
+    
     @Mock
     private ContaMemory bancoMemoriaMock;
 
@@ -34,20 +34,17 @@ public class SistemaBancarioTest {
     private ContaBancaria contaSaqueMock;
 
     @Mock
-    private ContaBancaria contaDepositoMock;
-
-    @Mock
     private ContaBancaria contaOrigemMock;
 
     @Mock
     private ContaBancaria contaDestinoMock;
 
+    @Mock
+    private TransacaoRepository transacaoRepoMock;
 
     @InjectMocks
     private SistemaBancario sistemaBanco;
 
-    @Captor
-    ArgumentCaptor<ContaBancaria> contaCaptor;
 
     @Captor
     ArgumentCaptor<String> nomeCaptor;
@@ -71,6 +68,9 @@ public class SistemaBancarioTest {
 
             when(bancoMemoriaMock.buscarContaBancariaPorNumero(2))
                     .thenReturn(contaDestinoMock);
+
+            when(transacaoRepoMock.gerarCodigoTransacao())
+                    .thenReturn(1);
 
             sistemaBanco.tranferencia(1, 2, Dinheiro.NOVO(new BigDecimal(300)));
 
@@ -150,6 +150,9 @@ public class SistemaBancarioTest {
             when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                     .thenReturn(contaSaqueMock);
 
+            when(transacaoRepoMock.gerarCodigoTransacao())
+                    .thenReturn(1);
+
             sistemaBanco.sacar(1, valorSaque);
 
             verify(contaSaqueMock, times(1)).sacar(valorParametroCaptor.capture());
@@ -201,6 +204,9 @@ public class SistemaBancarioTest {
         when(bancoMemoriaMock.buscarContaBancariaPorNumero(1))
                 .thenReturn(contaOrigemMock);
 
+        when(transacaoRepoMock.gerarCodigoTransacao())
+                .thenReturn(1);
+
         sistemaBanco.depositar(1, valorDeposito);
 
         verify(contaOrigemMock, times(1)).depositar(valorParametroCaptor.capture());
@@ -234,8 +240,8 @@ public class SistemaBancarioTest {
     @Test
     void testarSistemaCriarConta() {
         int numeroConta;
-
-        when(bancoMemoriaMock.criarConta("Jonas", CPF.of("10020030040")))
+        CPF cpfConta = CPF.of("10020030040");
+        when(bancoMemoriaMock.criarConta("Jonas", cpfConta))
                 .thenReturn(1);
 
         numeroConta = sistemaBanco.sistemaCriarConta("Jonas", "10020030040");
@@ -248,7 +254,7 @@ public class SistemaBancarioTest {
         );
 
         assertEquals(
-                "10020030040", cpfCapturado.valor()
+                cpfConta, cpfCapturado
         );
 
         assertEquals(

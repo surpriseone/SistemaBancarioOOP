@@ -5,11 +5,11 @@ import java.sql.SQLException;
 
 public class ConnectionFactory {
 
-    private String url = "jdbc:mysql://172.18.158.87:3306/sistema_bancario";
+    private String url = "";
 
-    private String usuario = "felype_java";
+    private String usuario = "";
 
-    private String senha = "Susu003!";
+    private String senha = "";
 
     public Connection recuperarConexao() {
         try {

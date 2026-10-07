@@ -1,10 +1,11 @@
 package br.com.sistemabancario.repositories.SQL;
 
+import br.com.sistemabancario.entities.Cliente;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
 import br.com.sistemabancario.exceptions.DataBaseException;
-import br.com.sistemabancario.objectvalues.CPF;
 import br.com.sistemabancario.objectvalues.Dinheiro;
+import br.com.sistemabancario.repositories.Intefaces.ClienteRepository;
 import br.com.sistemabancario.repositories.Intefaces.ContaRepository;
 
 import java.math.BigDecimal;
@@ -16,9 +17,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class ContaRepositorySQL implements ContaRepository {
     Connection connection;
-
-    public ContaRepositorySQL(Connection conection) {
+    ClienteRepository clienteRepository;
+    public ContaRepositorySQL(Connection conection, ClienteRepository clienteRepository) {
         this.connection = conection;
+        this.clienteRepository = clienteRepository;
     }
 
     @Override
@@ -27,7 +29,7 @@ public class ContaRepositorySQL implements ContaRepository {
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, conta.getNumeroDaConta());
-            stmt.setString(2, conta.getCPF().valor());
+            stmt.setString(2, conta.getTitular().getCpf().valor());
             stmt.setString(3, conta.getNomeTitular());
             stmt.setBigDecimal(4, conta.getSaldo().getValor());
 
@@ -39,30 +41,29 @@ public class ContaRepositorySQL implements ContaRepository {
     }
 
     @Override
-    public int criarConta(String nomeTitular, CPF cpf) {
-        ContaBancaria conta = new ContaBancaria(nomeTitular, gerarNumeroContas(), cpf);
+    public int criarConta(Cliente cliente) {
+        ContaBancaria conta = new ContaBancaria(cliente, gerarNumeroContas());
         salvarConta(conta);
         return conta.getNumeroDaConta();
     }
 
     @Override
     public ContaBancaria buscarContaBancariaPorNumero(int numeroConta) {
-        String sql = "SELECT * FROM contas WHERE numero_conta = ?";
+        String sql = "SELECT conta_id, cliente_id, saldo FROM contas WHERE numero_conta = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, numeroConta);
 
             try (ResultSet result = stmt.executeQuery()) {
                 if (result.next()) {
-                    String nomeTitular = result.getString("titular");
-                    String cpfSql = result.getString("CPF");
+                    int contaID = result.getInt("conta_id");
+                    int clienteID = result.getInt("cliente_id");
                     int numeroDaConta = result.getInt("numero_conta");
                     BigDecimal saldo = result.getBigDecimal("saldo");
-
                     Dinheiro saldoAtual = Dinheiro.NOVO(saldo);
-                    CPF cpf = CPF.of(cpfSql);
 
-                    return ContaBancaria.reconstituirConta(nomeTitular, numeroDaConta, cpf, saldoAtual);
+                    Cliente cliente = clienteRepository.buscarClientePorId(clienteID);
+                    return ContaBancaria.reconstituirConta(contaID, cliente, numeroDaConta, saldoAtual);
                 }
             }
         } catch (SQLException e) {

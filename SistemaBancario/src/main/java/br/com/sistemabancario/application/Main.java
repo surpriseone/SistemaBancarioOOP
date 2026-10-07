@@ -1,11 +1,12 @@
+/***
+
 package br.com.sistemabancario.application;
 
-
-
-
 import br.com.sistemabancario.factory.ConnectionFactory;
+import br.com.sistemabancario.repositories.Intefaces.ClienteRepository;
 import br.com.sistemabancario.repositories.Intefaces.TransacaoRepository;
 import br.com.sistemabancario.repositories.Memory.ContaMemory;
+import br.com.sistemabancario.repositories.SQL.ClienteRepositorySQL;
 import br.com.sistemabancario.repositories.SQL.ContaRepositorySQL;
 import br.com.sistemabancario.repositories.SQL.TransacaoRepositorySQL;
 import br.com.sistemabancario.services.SistemaBancario;
@@ -29,7 +30,8 @@ public class Main {
 
         ConnectionFactory factory = new ConnectionFactory();
         Connection connection = factory.recuperarConexao();
-        ContaRepository NewBank = new ContaRepositorySQL(connection);
+        ClienteRepository clienteRepository = new ClienteRepositorySQL();
+        ContaRepository NewBank = new ContaRepositorySQL(connection, clienteRepository);
         TransacaoRepository transacaoRepository = new TransacaoRepositorySQL(connection, NewBank);
         SistemaBancario sistemaBancario = new SistemaBancario(NewBank, transacaoRepository, connection);
         sistemaBancario.sistemaCriarContaComDepositoInicial("Jose", "12345678910",Dinheiro.NOVO(new BigDecimal(600)));
@@ -131,5 +133,7 @@ public class Main {
         sc.close();
     }
 }
+
+ ***/
 
 

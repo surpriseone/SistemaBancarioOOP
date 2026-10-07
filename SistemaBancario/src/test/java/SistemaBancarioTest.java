@@ -1,6 +1,8 @@
 
+import br.com.sistemabancario.entities.Cliente;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.objectvalues.CPF;
+import br.com.sistemabancario.objectvalues.Email;
 import br.com.sistemabancario.repositories.Intefaces.TransacaoRepository;
 import br.com.sistemabancario.services.SistemaBancario;
 import br.com.sistemabancario.repositories.Memory.ContaMemory;
@@ -26,7 +28,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class SistemaBancarioTest {
-    
+
     @Mock
     private ContaMemory bancoMemoriaMock;
 
@@ -51,6 +53,9 @@ public class SistemaBancarioTest {
 
     @Captor
     ArgumentCaptor<CPF> numeroCPF;
+
+    @Captor
+    ArgumentCaptor<Cliente> clienteCaptor;
 
     @Captor
     ArgumentCaptor<Dinheiro> valorParametroCaptor;
@@ -241,23 +246,21 @@ public class SistemaBancarioTest {
     void testarSistemaCriarConta() {
         int numeroConta;
         CPF cpfConta = CPF.of("10020030040");
-        when(bancoMemoriaMock.criarConta("Jonas", cpfConta))
+        Email email = Email.of("Jonas@gmail.com");
+        Cliente cliente = new Cliente("Jonas", cpfConta, email);
+        when(bancoMemoriaMock.criarConta(cliente))
                 .thenReturn(1);
 
-        numeroConta = sistemaBanco.sistemaCriarConta("Jonas", "10020030040");
-        verify(bancoMemoriaMock).criarConta(nomeCaptor.capture(), numeroCPF.capture());
+        numeroConta = sistemaBanco.sistemaCriarConta(cliente);
+        verify(bancoMemoriaMock).criarConta(clienteCaptor.capture());
 
-        String nomeCapturado = nomeCaptor.getValue();
-        CPF cpfCapturado = numeroCPF.getValue();
+        Cliente clienteCapturado = clienteCaptor.getValue();
         assertEquals(
-                "Jonas", nomeCapturado
+                cliente, clienteCapturado
         );
 
         assertEquals(
-                cpfConta, cpfCapturado
+                1, numeroConta
         );
-
-        assertEquals(
-                1, numeroConta);
     }
 }

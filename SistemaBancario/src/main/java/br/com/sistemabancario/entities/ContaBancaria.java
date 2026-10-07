@@ -12,57 +12,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ContaBancaria {
-
+    private int contaID;
     private int numeroDaConta;
-    private String nomeTitular;
+    private Cliente titular;
     private Dinheiro saldo;
-    private CPF cpf;
     private List<Transacao> extrato = new ArrayList<>();
 
 
     // Construtores
-    public ContaBancaria(String nomeTitular, int numeroConta, CPF cpfEntrada) {
-
-        if (nomeTitular == null) {
-            throw new TitularNullException("O titular precisa ter um nome");
-        }
-
-        if (nomeTitular.trim().isEmpty()) {
-            throw new TitularEmptyException("O Titular não pode ter nome vazio");
-        }
-        this.cpf = cpfEntrada;
+    public ContaBancaria(Cliente titular, int numeroConta) {
+        this.titular = titular;
         this.numeroDaConta = numeroConta;
-        this.nomeTitular = nomeTitular;
         this.saldo = Dinheiro.ZERO;
     }
 
-
-// Metodos Get
     public int getNumeroDaConta(){
         return this.numeroDaConta;
     }
-    public String getNomeTitular(){
-        return this.nomeTitular;
-    }
     public Dinheiro getSaldo(){
         return this.saldo;
-    }
-    public CPF getCPF(){
-        return this.cpf;
-    }
-
-//Metodo set
-
-    public void setNomeTitular(String novoNomeTitular){
-        if (novoNomeTitular == null) {
-            throw new TitularNullException("O Titular tem que ter um nome");
-        }
-
-        if (novoNomeTitular.trim().isEmpty()) {
-            throw new TitularEmptyException("Nome do titular não pode estar vazio");
-        }
-
-        this.nomeTitular = novoNomeTitular;
     }
 
     public void adicionarNoExtrato(Transacao transacao){
@@ -108,7 +76,7 @@ public class ContaBancaria {
 
     @Override
     public String toString(){
-        return "Nome do titular: " + this.nomeTitular + " | Conta: "
+        return "Nome do titular: " + this.titular.getNome() + " | Conta: "
                 + this.numeroDaConta + " | Saldo em conta: " + this.saldo + "\n";
     }
 
@@ -119,12 +87,21 @@ public class ContaBancaria {
     }
 
     //Receber dados do banco
-    private ContaBancaria(String nomeTitular, int numeroDaConta, CPF cpf, Dinheiro saldoAtual){
-        this(nomeTitular, numeroDaConta, cpf);
+    private ContaBancaria(int contaID, Cliente titular, int numeroDaConta, Dinheiro saldoAtual){
+        this(titular, numeroDaConta);
+        this.contaID = contaID;
         this.saldo = saldoAtual;
     }
 
-    public static ContaBancaria reconstituirConta(String nomeTitular, int numeroDaConta, CPF cpf, Dinheiro saldoAtual){
-        return new ContaBancaria(nomeTitular, numeroDaConta, cpf, saldoAtual);
+    public static ContaBancaria reconstituirConta(int contaID, Cliente titular, int numeroDaConta, Dinheiro saldoAtual){
+        return new ContaBancaria(contaID, titular, numeroDaConta, saldoAtual);
+    }
+
+    public Cliente getTitular() {
+        return titular;
+    }
+
+    public String getNomeTitular(){
+        return this.titular.getNome();
     }
 }

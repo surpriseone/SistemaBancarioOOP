@@ -1,4 +1,5 @@
 package br.com.sistemabancario.services;
+import br.com.sistemabancario.entities.Cliente;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.entities.Transacao;
 import br.com.sistemabancario.exceptions.ErroDeTransferenciaException;
@@ -121,13 +122,12 @@ public class SistemaBancario {
 
     }
 
-    public int sistemaCriarConta(String nomeTitular, String cpf){
-        CPF cpfCliente = CPF.of(cpf);
-        return contaRepositorio.criarConta(nomeTitular, cpfCliente);
+    public int sistemaCriarConta(Cliente cliente){
+        return contaRepositorio.criarConta(cliente);
     }
 
-    public int sistemaCriarContaComDepositoInicial(String nomeTitular, String cpf, Dinheiro depositoInicial) {
-        int numeroConta = sistemaCriarConta(nomeTitular, cpf);
+    public int sistemaCriarContaComDepositoInicial(Cliente cliente, Dinheiro depositoInicial) {
+        int numeroConta = sistemaCriarConta(cliente);
         depositar(numeroConta, depositoInicial);
 
         return numeroConta;

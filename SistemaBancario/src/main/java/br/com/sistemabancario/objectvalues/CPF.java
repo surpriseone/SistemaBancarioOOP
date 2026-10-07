@@ -24,9 +24,10 @@ public final class CPF {
         return cpf;
     }
 
-
     @Override
     public boolean equals(Object o) {
+        if(this == o) return true;
+
         if (o == null || getClass() != o.getClass()) return false;
         CPF cpf1 = (CPF) o;
         return Objects.equals(cpf, cpf1.cpf);

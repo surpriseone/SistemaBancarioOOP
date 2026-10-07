@@ -1,6 +1,8 @@
 
 
+import br.com.sistemabancario.entities.Cliente;
 import br.com.sistemabancario.objectvalues.CPF;
+import br.com.sistemabancario.objectvalues.Email;
 import br.com.sistemabancario.repositories.Memory.ContaMemory;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.services.SistemaBancario;
@@ -23,8 +25,10 @@ public class ContaBancariaTest {
 
     @BeforeEach
         public void criarConta() {
-            contaUsuario1 = new ContaBancaria("Usuario1", 12, CPF.of("12345678910"));
-            contaUsuario2 = new ContaBancaria("Usuario2", 22, CPF.of("11122233344"));
+            Cliente cliente1 = new Cliente("Cliente 1", CPF.of("12345678910"), Email.of("Cliente1@gmail.com"));
+            Cliente cliente2 = new Cliente("Cliente 2", CPF.of("11122233344"), Email.of("Cliente2@gmail.com"));
+            contaUsuario1 = new ContaBancaria(cliente1, 12);
+            contaUsuario2 = new ContaBancaria(cliente2, 22);
             contaUsuario1.depositar(Dinheiro.NOVO(new BigDecimal(10)));
     }
 

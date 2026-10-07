@@ -1,5 +1,6 @@
 package br.com.sistemabancario.repositories.Memory;
 
+import br.com.sistemabancario.entities.Cliente;
 import br.com.sistemabancario.entities.ContaBancaria;
 
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
@@ -22,8 +23,8 @@ public class ContaMemory implements ContaRepository {
     }
 
     @Override
-    public int criarConta(String nomeTitular, CPF cpf) {
-        ContaBancaria conta = new ContaBancaria(nomeTitular, gerarNumeroContas(), cpf);
+    public int criarConta(Cliente titular) {
+        ContaBancaria conta = new ContaBancaria(titular, gerarNumeroContas());
         salvarConta(conta);
         return conta.getNumeroDaConta();
     }

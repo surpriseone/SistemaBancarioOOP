@@ -1,6 +1,8 @@
 
 
+import br.com.sistemabancario.entities.Cliente;
 import br.com.sistemabancario.objectvalues.CPF;
+import br.com.sistemabancario.objectvalues.Email;
 import br.com.sistemabancario.repositories.Memory.ContaMemory;
 import br.com.sistemabancario.entities.ContaBancaria;
 import br.com.sistemabancario.exceptions.ContaNaoEncontradaException;
@@ -31,7 +33,8 @@ public class BancoTest {
     @BeforeEach
     public void setUp(){
         bancoMemoria = new ContaMemory();
-        contaTeste = new ContaBancaria("Jose", 10, CPF.of("91120080012"));
+        Cliente cliente = new Cliente("Jose", CPF.of("91120080012"), Email.of("Jose@gmail.com"));
+        contaTeste = new ContaBancaria(cliente, 10);
         bancoMemoria.salvarConta(contaTeste);
     }
 
@@ -43,9 +46,9 @@ public class BancoTest {
         ContaBancaria contaRetornada = bancoMemoria.buscarContaBancariaPorNumero(numeroDaConta);
         assertEquals(contaTeste, contaRetornada);
         assertEquals(contaTeste.getNumeroDaConta(), contaRetornada.getNumeroDaConta());
-        assertEquals(contaTeste.getCPF(), contaRetornada.getCPF());
+        assertEquals(contaTeste.getTitular().getCpf(), contaRetornada.getTitular().getCpf());
         assertEquals(contaTeste.getSaldo(), contaRetornada.getSaldo());
-        assertEquals(contaTeste.getNomeTitular(), contaRetornada.getNomeTitular());
+        assertEquals(contaTeste.getTitular(), contaRetornada.getTitular());
     }
 
 
@@ -64,14 +67,15 @@ public class BancoTest {
 
     @Test
     void testarCriacaoContaComDeposito(){
-        int numeroConta = bancoMemoria.criarConta("João", CPF.of("12345678911"));
+        Cliente cliente = new Cliente("João", CPF.of("12345678911"), Email.of("Joao@gmail.com"));
+        int numeroConta = bancoMemoria.criarConta(cliente);
         ContaBancaria conta = bancoMemoria.buscarContaBancariaPorNumero(numeroConta);
 
         assertEquals(
-                "João", conta.getNomeTitular()
+                cliente, conta.getTitular()
         );
 
-        assertEquals("12345678911", conta.getCPF().valor());
+        assertEquals("12345678911", conta.getTitular().getCpf().valor());
 
         assertEquals(
                 Dinheiro.ZERO, conta.getSaldo()

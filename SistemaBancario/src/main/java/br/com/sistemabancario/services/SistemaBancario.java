@@ -5,6 +5,8 @@ import br.com.sistemabancario.entities.Transacao;
 import br.com.sistemabancario.exceptions.ErroDeTransferenciaException;
 import br.com.sistemabancario.objectvalues.CPF;
 import br.com.sistemabancario.objectvalues.Dinheiro;
+import br.com.sistemabancario.objectvalues.Email;
+import br.com.sistemabancario.repositories.Intefaces.ClienteRepository;
 import br.com.sistemabancario.repositories.Intefaces.ContaRepository;
 import br.com.sistemabancario.repositories.Intefaces.TransacaoRepository;
 
@@ -15,16 +17,22 @@ public class SistemaBancario {
 
     private ContaRepository contaRepositorio;
     private TransacaoRepository transacaoRepositorio;
+    private ClienteRepository clienteRepositorio;
     private Connection connection;
 
-    public SistemaBancario(ContaRepository bancoRepo, TransacaoRepository transacaoRepo, Connection connection){
+    public SistemaBancario(ContaRepository bancoRepo, TransacaoRepository transacaoRepo, Connection connection, ClienteRepository clienteRepositorio){
         this.contaRepositorio = bancoRepo;
         this.transacaoRepositorio = transacaoRepo;
         this.connection = connection;
+        this.clienteRepositorio = clienteRepositorio;
     }
 
     public ContaRepository getRepositorio(){
         return this.contaRepositorio;
+    }
+
+    public int cadastrarCliente(Cliente cliente){
+        return clienteRepositorio.salvarCliente(cliente);
     }
 
     public void tranferencia(int numeroContaOrigem, int numeroContaDestino, Dinheiro valorTranferencia){
@@ -59,8 +67,6 @@ public class SistemaBancario {
             }
         }
     }
-
-
 
     public void sacar(int numeroDaConta, Dinheiro valorSaque){
         try{
@@ -121,6 +127,7 @@ public class SistemaBancario {
         }
 
     }
+
 
     public int sistemaCriarConta(Cliente cliente){
         return contaRepositorio.criarConta(cliente);

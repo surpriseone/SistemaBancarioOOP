@@ -76,8 +76,7 @@ public class ContaBancaria {
 
     @Override
     public String toString(){
-        return "Nome do titular: " + this.titular.getNome() + " | Conta: "
-                + this.numeroDaConta + " | Saldo em conta: " + this.saldo + "\n";
+        return " | Conta: " + this.numeroDaConta + " | Saldo em conta: " + this.saldo + "\n";
     }
 
     public void imprimirExtrato() {

@@ -16,6 +16,12 @@ import java.sql.SQLException;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ContaRepositorySQL implements ContaRepository {
+
+    private static final String NUMERO_CONTA_COLUNA = "numero_conta";
+    private static final String CONTA_ID_COLUNA = "conta_id";
+    private static final String CLIENTE_ID_COLUNA = "cliente_id";
+    private static final String SALDO_COLUNA = "saldo";
+
     Connection connection;
     ClienteRepository clienteRepository;
     public ContaRepositorySQL(Connection conection, ClienteRepository clienteRepository) {
@@ -25,13 +31,12 @@ public class ContaRepositorySQL implements ContaRepository {
 
     @Override
     public boolean salvarConta(ContaBancaria conta) {
-        String sql = "INSERT INTO contas (numero_conta, CPF, titular, saldo) VALUES(?, ?, ?, ?)";
+        String sql = "INSERT INTO contas (numero_conta, cliente_id, saldo) VALUES(?, ?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, conta.getNumeroDaConta());
-            stmt.setString(2, conta.getTitular().getCpf().valor());
-            stmt.setString(3, conta.getNomeTitular());
-            stmt.setBigDecimal(4, conta.getSaldo().getValor());
+            stmt.setInt(2, conta.getTitular().getClienteID());
+            stmt.setBigDecimal(3, conta.getSaldo().getValor());
 
             stmt.execute();
             return true;
@@ -56,10 +61,10 @@ public class ContaRepositorySQL implements ContaRepository {
 
             try (ResultSet result = stmt.executeQuery()) {
                 if (result.next()) {
-                    int contaID = result.getInt("conta_id");
-                    int clienteID = result.getInt("cliente_id");
-                    int numeroDaConta = result.getInt("numero_conta");
-                    BigDecimal saldo = result.getBigDecimal("saldo");
+                    int contaID = result.getInt(CONTA_ID_COLUNA);
+                    int clienteID = result.getInt(CLIENTE_ID_COLUNA);
+                    int numeroDaConta = result.getInt(NUMERO_CONTA_COLUNA);
+                    BigDecimal saldo = result.getBigDecimal(SALDO_COLUNA);
                     Dinheiro saldoAtual = Dinheiro.NOVO(saldo);
 
                     Cliente cliente = clienteRepository.buscarClientePorId(clienteID);

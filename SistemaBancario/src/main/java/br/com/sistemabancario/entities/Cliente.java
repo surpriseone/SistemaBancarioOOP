@@ -26,7 +26,7 @@ public class Cliente {
             throw new TitularEmptyException("O Titular não pode ter nome vazio");
         }
 
-        return nomeTitular.toUpperCase();
+        return nomeTitular.toLowerCase();
     }
 
     public String getNome() {
@@ -39,6 +39,14 @@ public class Cliente {
 
     public Email getEmail() {
         return email;
+    }
+
+    public void alterarEmail(Email email){
+        this.email = email;
+    }
+
+    public int getClienteID() {
+        return clienteID;
     }
 
     //Reconstituir do banco

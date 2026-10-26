@@ -55,12 +55,12 @@ public class TransacaoRepositorySQL implements TransacaoRepository {
     @Override
     public void salvarTransacao(Transacao transacao){
 
-        String sql = "INSERT INTO transacoes (codigo_transacao, tipo, valor, " +
+        String sql = "INSERT INTO transacoes (codigo_transacao, tipo_transacao, valor, " +
                 "conta_origem_id, conta_destino_id) VALUES(?, ?, ?, ?, ?)";
 
         try(PreparedStatement stmt = conection.prepareStatement(sql)){
             stmt.setInt(1, transacao.getNumeroTransacao());
-            stmt.setString(2, transacao.getTipoDeTransacao().name());
+            stmt.setString(2, transacao.getTipoDeTransacao().name().toLowerCase());
             stmt.setBigDecimal(3, transacao.getValorTransacao().getValor());
             stmt.setInt(4, transacao.getContaOrigem().getNumeroDaConta());
 
@@ -87,9 +87,9 @@ public class TransacaoRepositorySQL implements TransacaoRepository {
             try(ResultSet result = stmt.executeQuery()) {
                 if (result.next()) {
                     Integer codigo_transacao = result.getInt("codigo_transacao");
-                    String tipoBanco = result.getString("tipo");
+                    String tipoBanco = result.getString("tipo_transacao");
                     BigDecimal valor = result.getBigDecimal("valor");
-                    LocalDateTime data = result.getObject("data_hora", LocalDateTime.class);
+                    LocalDateTime data = result.getObject("realizada_em", LocalDateTime.class);
                     int contaOrigemNumero = result.getInt("conta_origem_id");
                     ContaBancaria contaOrigem = contaRepositorio.buscarContaBancariaPorNumero(contaOrigemNumero);
 
@@ -103,11 +103,9 @@ public class TransacaoRepositorySQL implements TransacaoRepository {
                     Dinheiro valorDinheiro = Dinheiro.NOVO(valor);
                     TipoTransacao tipo = TipoTransacao.valueOf(tipoBanco);
 
-                    Transacao transacao = Transacao.reconstituirTransacao(
+                    return Transacao.reconstituirTransacao(
                             codigo_transacao, tipo, valorDinheiro, contaOrigem, contaDestino, data
                     );
-
-                    return transacao;
                 }
             }
         }catch (SQLException e){
